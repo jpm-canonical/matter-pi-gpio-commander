@@ -12,6 +12,7 @@ confinement: strict
 base: core22
 architectures:
   - build-on: arm64
+  - build-on: amd64
 
 slots:
   custom-gpio-dev:
@@ -141,6 +142,9 @@ parts:
       - ZAP_ENV: ../../zap/build/env
     override-build: |
 
+      export MATTER_SDK_PATH=../../connectedhomeip
+      MATTER_SDK_PATH=../../connectedhomeip
+
       cp $CRAFT_STAGE/gpiod.h linux/include 
 
       # Setup ZAP paths; installed in the corresponding part
@@ -167,17 +171,74 @@ parts:
 
       cd $CRAFT_PART_BUILD
       cd ../../connectedhomeip/src
+      pwd
+
+      ls -la
+
+      cd $CRAFT_PART_BUILD/linux
+      pwd
+
+      ln -s ../../../connectedhomeip/src/build_overrides build_overrides
+      if [[ ! -z build_overrides ]]; then
+        echo "build_overrides exists"
+      else
+        echo "build_overrides does not exist"
+        ln -s ../../connectedhomeip/src/build_overrides build_overrides
+      fi
+      ls -l ../../
+      ls -l ../../../connectedhomeip
+
+
+      echo "[build_overrides] Detecting link integrity..."
+      find . -type l ! -exec test -e {} \; -print
+
+      cd third_party
+      echo -e "\n\n\n\n\n\n"
+      ls ../../../.. 
+      echo -e "\n\n\n\n\n\n"
+      ln -s ../../../../connectedhomeip connectedhomeip
+
+
+      if [[ ! -z connectedhomeip ]]; then
+        echo "connectedhomeip exists"
+      else
+        echo "connectedhomeip does not exist"
+        ln -s ../../../../connectedhomeip connectedhomeip
+      fi
+      cd ..
+
+      pwd
+      ls -la
+      ls -l third_party
+
+      echo "[third_party] Detecting link integrity..."
+      find third_party -type l ! -exec test -e {} \; -print
+
+      pwd
+      ls -la third_party/connectedhomeip/src
+
+      cd $CRAFT_PART_BUILD
+      cd ../../connectedhomeip/src
+
+      echo -e "\n\n\n\n\n\n\n"
 
       # To avoid unrelated activation errors, don't treat unset variables as error
       set +u
       source scripts/activate.sh
       set -u
 
+      cd $CRAFT_PART_BUILD/linux
       # Copy and replace the application files
-      cp -vr $CRAFT_PART_BUILD/lighting-common/* examples/lighting-app/lighting-common/
-      cp -vr $CRAFT_PART_BUILD/linux/* examples/lighting-app/linux
+      # cp -vr $CRAFT_PART_BUILD/lighting-common/* examples/lighting-app/lighting-common/
+      # cp -vr $CRAFT_PART_BUILD/linux/* examples/lighting-app/linux
+      echo -e "\n\n\n\n\n\n\n"
+      # cd examples/lighting-app/linux
+      ls -la /root/parts/connectedhomeip
+      ls -la /root/parts/connectedhomeip/build
+      ls -la /root/parts/connectedhomeip/build/build_overrides
+      ls -la /root/parts/connectedhomeip/src
 
-      cd examples/lighting-app/linux
+      echo -e "\n\n\n\n\n\n\n"
       gn gen out/build
       ninja -C out/build
 
